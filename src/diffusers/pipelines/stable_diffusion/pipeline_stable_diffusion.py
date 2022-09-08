@@ -103,6 +103,8 @@ class StableDiffusionPipeline(DiffusionPipeline):
         latents: Optional[torch.FloatTensor] = None,
         output_type: Optional[str] = "pil",
         return_dict: bool = True,
+        incremental_update_fn=None,
+        incremental_update_freq=1,
         **kwargs,
     ):
         r"""
@@ -253,9 +255,7 @@ class StableDiffusionPipeline(DiffusionPipeline):
             else:
                 latents = self.scheduler.step(noise_pred, t, latents, **extra_step_kwargs).prev_sample
 
-            if "incremental_update" in kwargs:
-                incremental_update_fn = kwargs.pop("incremental_update")
-                incremental_update_freq = kwargs.pop("incremental_update_freq")
+            if incremental_update_fn is not None:
                 if i % incremental_update_freq == 0:
                     # scale and decode the image latents with vae
                     latents_c = 1 / 0.18215 * latents
