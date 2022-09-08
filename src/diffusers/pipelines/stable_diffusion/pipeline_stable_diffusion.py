@@ -264,7 +264,7 @@ class StableDiffusionPipeline(DiffusionPipeline):
                     image = (image / 2 + 0.5).clamp(0, 1)
                     image = image.cpu().permute(0, 2, 3, 1).numpy()
                     image = self.numpy_to_pil(image)
-                    incremental_update_fn(image)
+                    incremental_update_fn(i, image)
 
         # scale and decode the image latents with vae
         latents = 1 / 0.18215 * latents
