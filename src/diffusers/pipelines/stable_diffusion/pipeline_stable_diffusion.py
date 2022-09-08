@@ -253,6 +253,19 @@ class StableDiffusionPipeline(DiffusionPipeline):
             else:
                 latents = self.scheduler.step(noise_pred, t, latents, **extra_step_kwargs).prev_sample
 
+            if "incremental_update" in kwargs:
+                incremental_update_fn = kwargs.pop("incremental_update")
+                incremental_update_freq = kwargs.pop("incremental_update_freq")
+                if i % incremental_update_freq == 0:
+                    # scale and decode the image latents with vae
+                    latents_c = 1 / 0.18215 * latents
+                    image = self.vae.decode(latents_c).sample
+
+                    image = (image / 2 + 0.5).clamp(0, 1)
+                    image = image.cpu().permute(0, 2, 3, 1).numpy()
+                    image = self.numpy_to_pil(image)
+                    incremental_update_fn(image)
+
         # scale and decode the image latents with vae
         latents = 1 / 0.18215 * latents
         image = self.vae.decode(latents).sample
